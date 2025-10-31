@@ -1,4 +1,4 @@
-# Proyecto-2-Estadistica-Matematica
+# Proyecto 2 Estadística Matemática
 
 Sara Leiva Montoya, Pedro Pablo Sanín Trujillo
 
