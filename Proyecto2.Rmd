@@ -68,7 +68,7 @@ A continuación mostramos el código R usado para calcular el estimador
 ```{r}
 set.seed(1)
 
-mle_gamma_nr <- function(sample, precision = 1e-6, max_iterations = 50){
+mle_gamma_nr <- function(sample, precision = 1e-6, max_iteraciones = 50){
   # Estadísticos básicos
   sample.size     <- length(sample)
   sample.mean     <- mean(sample)
@@ -76,7 +76,7 @@ mle_gamma_nr <- function(sample, precision = 1e-6, max_iterations = 50){
   sample.sum      <- sum(sample)
   sample.sumlog   <- sum(log(sample))
 
-  iterations <- 0L
+  iteraciones <- 0L
   diferencia <- Inf
 
   # Gradiente de la log-verosimilitud
@@ -100,30 +100,30 @@ mle_gamma_nr <- function(sample, precision = 1e-6, max_iterations = 50){
   }
 
   # Inicialización por momentos
-  theta_prev <- c((sample.mean)^2 / sample.variance, sample.variance / sample.mean)
+  theta_ant <- c((sample.mean)^2 / sample.variance, sample.variance / sample.mean)
   
   #Verificamos que los estimadores estén bien definidos y sean positivos.
-  if (any(!is.finite(theta_prev)) || any(theta_prev <= 0)) {
-    #theta_prev <- pmax(theta_prev, 1e-8)
+  if (any(!is.finite(theta_ant)) || any(theta_ant <= 0)) {
+    #theta_ant <- pmax(theta_ant, 1e-8)
   }
 
   repeat {
-    # Paso de Newton: theta_new = theta_prev - inv(H) %*% grad
-    paso <- drop(inverse_hessian(theta_prev) %*% likelihood_gradient(theta_prev))
-    theta_new <- theta_prev - paso
+    # Paso de Newton: theta_nuevo = theta_ant - inv(H) %*% grad
+    paso <- drop(inverse_hessian(theta_ant) %*% likelihood_gradient(theta_ant))
+    theta_nuevo <- theta_ant - paso
     
-    theta_new[!is.finite(theta_new) | theta_new <= 0] <- 1e-8
+    theta_nuevo[!is.finite(theta_nuevo) | theta_nuevo <= 0] <- 1e-8
 
-    iterations <- iterations + 1L
-    diferencia <- max(abs(theta_new - theta_prev))
+    iteraciones <- iteraciones + 1L
+    diferencia <- max(abs(theta_nuevo - theta_ant))
 
-    if (diferencia < precision || iterations >= max_iterations) break
-    theta_prev <- theta_new
+    if (diferencia < precision || iteraciones >= max_iteraciones) break
+    theta_ant <- theta_nuevo
   }
 
   return(list(
-    theta = theta_new,
-    iteraciones = iterations,
+    theta = theta_nuevo,
+    iteraciones = iteraciones,
     convergio = (diferencia < precision)
   ))
 }
@@ -135,17 +135,17 @@ Ahora, generaremos 1000 muestras de tamaños $n = 100, 200, 500, 1000 y 2000$, y
 set.seed(123)
 
 # True parameters (Gamma with shape = alpha, scale = beta)
-alpha_true <- 2.5
-beta_true  <- 4.6
+alpha_0 <- 2.5
+beta_0  <- 4.6
 
 # Sample sizes and number of replications
 ns   <- c(100, 200, 500, 1000, 2000)
 reps <- 1000L
 
 # Collect MLEs for each n
-results <- do.call(rbind, lapply(ns, function(n) {
+resultados <- do.call(rbind, lapply(ns, function(n) {
   ests <- replicate(reps, {
-    x <- rgamma(n, shape = alpha_true, scale = beta_true)
+    x <- rgamma(n, shape = alpha_0, scale = beta_0)
     fit <- mle_gamma_nr(x)
     fit$theta
   })
@@ -158,13 +158,123 @@ results <- do.call(rbind, lapply(ns, function(n) {
 }))
 
 # Two boxplots held in a single figure by knitr
-boxplot(alpha_hat ~ factor(n), data = results,
+boxplot(alpha_hat ~ factor(n), data = resultados,
         xlab = "Tamaño muestral n", ylab = "EMV alpha",
         main = "Estimadores alpha por n")
-abline(h = alpha_true, col = "red", lty = 2)
+abline(h = alpha_0, col = "red", lty = 2)
 
-boxplot(beta_hat ~ factor(n), data = results,
+boxplot(beta_hat ~ factor(n), data = resultados,
         xlab = "Tamaño muestral n", ylab = "EMV beta",
         main = "Estimadores beta por n")
-abline(h = beta_true, col = "red", lty = 2)
+abline(h = beta_0, col = "red", lty = 2)
 ```
+Podemos ver que a medida que aumenta el tamaño muestral, la varianza de los estimadores se reduce y la media tiende al parámetro real según el cual se generaron los datos. 
+
+### Conjuntos de confianza
+
+Sabemos del TLC para el EMV que $$\sqrt{n}(\hat{\theta}_n-\theta_0) \to \mathcal{N}(0,\frac{1}{I(\theta_0)})$$ en distribución. Por el teorema de Slutski tenemos que $$\sqrt{n}I_F(\hat{\theta}_n)^{1/2}(\hat{\theta}_n-\theta_0) \to I_F(\theta_0)^{1/2}\mathcal{N}(0,\frac{1}{I(\theta_0)})$$ en distribución y así $$\sqrt{n}I_F(\hat{\theta}_n)^{1/2}(\hat{\theta}_n-\theta_0) \to \mathcal{N}(0,I)$$ (definimos $A^{1/2}$ tal que $A = A^{1/2}A^{1/2}$ asumimos la continuidad de la función $A \mapsto A^{1/2}$). 
+
+Vea que <Falta justificar>
+
+Ahora, de la convergencia deducimos que $$n (\hat{\theta}_n-\theta_0)^TI_F(\hat{\theta}_n)(\hat{\theta}_n-\theta_0) \to \chi_2^2$$. Así, si $\rho$ es el cuantil 95% de la distribución $\chi_2^2$, el conjunto de confianza $$\mathcal{C}=\{\theta:n(\hat{\theta}_n - \theta)^TI_F(\hat{\theta}_n)(\hat{\theta}_n-\theta) \leq \rho\}$$ contiene al $\theta_0$ con probabilidad aproximada de 95%.
+
+A continuación, basado en los datos calculados podemos encontrar la proporción de datos que cumplen la condición anterior. Para eso considere el siguiente código:
+
+```{r, fig.show='hold', fig.ncol=2, out.width='49%', fig.align='center'}
+nivel <- 0.95
+rho <- qchisq(nivel, 2)
+
+I_F <- function(theta) {
+  alpha <- theta[1]
+  beta <- theta[2]
+  
+  a <- trigamma(alpha)
+  b <- 1/beta
+  c <- 1/beta
+  d <- alpha/(beta^2)
+  
+  return(matrix(c(a, b, c, d), nrow=2, ncol=2, byrow=TRUE))
+}
+
+esta_en_C <- function(theta_n, theta, n, rho) {
+  diff <- theta_n - theta
+  IF <- I_F(theta_n)
+  value <- n * t(diff) %*% IF %*% diff
+  return(value <= rho)
+}
+```
+
+Al calcular el porcentaje de parámetros en los resultados que cumplen con la condición respecto a $\theta_0$ obtenemos:
+
+
+```{r, echo= FALSE, fig.show='hold', fig.ncol=2, out.width='49%', fig.align='center'}
+calcular_probabilidades_contencion_empiricas <- function(resultados, theta_0, rho) {
+  # Validate input columns
+  if (!all(c("n", "alpha_hat", "beta_hat") %in% names(resultados))) {
+    stop("resultados must contain columns: n, alpha_hat, beta_hat")
+  }
+  contained <- with(resultados, mapply(
+    function(a_hat, b_hat, n_i) {
+      esta_en_C(c(a_hat, b_hat), theta_0, n = as.integer(n_i), rho = rho)
+    },
+    alpha_hat, beta_hat, n
+  ))
+
+  out <- aggregate(
+    contained ~ n,
+    data = data.frame(n = resultados$n, contained = contained),
+    FUN = function(x) 100 * mean(x)
+  )
+  names(out) <- c("n", "porcentaje")
+  out$n <- as.integer(out$n)
+  out <- out[order(out$n), ]
+  rownames(out) <- NULL
+
+  as.data.frame(out)
+}
+theta_0 <- c(alpha_0, beta_0)
+calcular_probabilidades_contencion_empiricas(resultados, theta_0 = theta_0, rho=rho)
+```
+
+Podemos graficar los  resultados así: 
+
+```{r, echo=  FALSE}
+plot_estimadores_grid <- function(resultados, theta_0, rho, ncol = 3) {
+  stopifnot(all(c("n", "alpha_hat", "beta_hat") %in% names(resultados)))
+  
+  # Clasificar cada estimador según la condición
+  dentro <- with(resultados, mapply(
+    function(a_hat, b_hat, n_i) {
+      esta_en_C(c(a_hat, b_hat), theta_0, n = as.integer(n_i), rho = rho)
+    },
+    resultados$alpha_hat, resultados$beta_hat, resultados$n
+  ))
+  
+  df <- transform(resultados, dentro = dentro)
+  df$n <- factor(df$n, levels = sort(unique(df$n)))
+  
+  # Crear una sola figura con una cuadrícula (facet_wrap)
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("Necesitas el paquete 'ggplot2'. Instálalo con install.packages('ggplot2').")
+  }
+  library(ggplot2)
+  
+  p <- ggplot(df, aes(x = alpha_hat, y = beta_hat, color = dentro)) +
+    geom_point(size = 1.4, alpha = 0.7) +
+    scale_color_manual(values = c(`TRUE` = "blue", `FALSE` = "red"),
+                       breaks = c(TRUE, FALSE),
+                       labels = c("Cumple", "No cumple"),
+                       name = NULL) +
+    facet_wrap(~ n, ncol = ncol, scales = "free") +
+    labs(x = expression(hat(alpha)),
+         y = expression(hat(beta)),
+         title = "Estimadores MLE por tamaño de muestra") +
+    theme_bw() +
+    theme(legend.position = "bottom")
+  
+  print(p)            # Asegura que en Rmd se imprima como una sola figura
+  invisible(p)
+}
+plot_estimadores_grid(resultados, theta_0 = theta_0, rho=rho)
+```
+
