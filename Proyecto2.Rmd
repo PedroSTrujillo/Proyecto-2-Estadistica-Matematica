@@ -446,3 +446,5 @@ A partir de estos resultados, al comparar $n\,\widehat{\mathrm{Cov}}(\hat\theta)
 Más allá, entrada a entrada el mayor desajuste aparece en la varianza de $\hat\alpha$ para $n=100$ (**E11 ≈ +13.5%**), mientras que para $n\ge 500$ todas las entradas quedan dentro de **±3%**. Además, la diferencia máxima entre matrices de correlación cae de $\sim 1.1\times10^{-2}$ a $\sim 10^{-3}$, lo que indica que también converge la **orientación** de la elipse.
 
 En conjunto, esto es coherente con la convergencia $n\,\widehat{\mathrm{Cov}}(\hat\theta)\to \mathcal{I}_F(\theta_0)^{-1}$; las leves oscilaciones entre $n=500,1000,2000$ se explican por el **error Monte Carlo** con $m=1000$ réplicas. Por último, con un criterio práctico (errores $\lesssim 3\%$ y $|\Delta\mathrm{correl}|\lesssim 0.01$), la aproximación es **buena para** $n\ge 500$ y **muy buena** para $n=1000$–$2000$. No obstante, para $n=100$–$200$ persiste una sub/sobre-estimación de algunas varianzas (hasta $\sim 10$–$14\%$ en E11 a $n=100$), esperable por el carácter asintótico del resultado.
+
+## Conclusión
