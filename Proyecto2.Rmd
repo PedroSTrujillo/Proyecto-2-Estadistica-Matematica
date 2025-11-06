@@ -168,50 +168,128 @@ boxplot(beta_hat ~ factor(n), data = resultados,
         main = "Estimadores beta por n")
 abline(h = beta_0, col = "red", lty = 2)
 ```
-Podemos ver que a medida que aumenta el tamaño muestral, la varianza de los estimadores se reduce y la media tiende al parámetro real según el cual se generaron los datos. 
+
+Podemos ver que a medida que aumenta el tamaño muestral, la varianza de los estimadores se reduce y la media tiende al parámetro real según el cual se generaron los datos.
 
 ### Conjuntos de confianza
 
-Sabemos del TLC para el EMV que $$\sqrt{n}(\hat{\theta}_n-\theta_0) \to \mathcal{N}(0,\frac{1}{I(\theta_0)})$$ en distribución. Por el teorema de Slutski tenemos que $$\sqrt{n}I_F(\hat{\theta}_n)^{1/2}(\hat{\theta}_n-\theta_0) \to I_F(\theta_0)^{1/2}\mathcal{N}(0,\frac{1}{I(\theta_0)})$$ en distribución y así $$\sqrt{n}I_F(\hat{\theta}_n)^{1/2}(\hat{\theta}_n-\theta_0) \to \mathcal{N}(0,I)$$ (definimos $A^{1/2}$ tal que $A = A^{1/2}A^{1/2}$ asumimos la continuidad de la función $A \mapsto A^{1/2}$). 
+#### TLC para el EMV y estadístico $\chi^2$
 
-Vea que <Falta justificar>
+##### TLC multivariado clásico para promedios
 
-Ahora, de la convergencia deducimos que $$n (\hat{\theta}_n-\theta_0)^TI_F(\hat{\theta}_n)(\hat{\theta}_n-\theta_0) \to \chi_2^2$$. Así, si $\rho$ es el cuantil 95% de la distribución $\chi_2^2$, el conjunto de confianza $$\mathcal{C}=\{\theta:n(\hat{\theta}_n - \theta)^TI_F(\hat{\theta}_n)(\hat{\theta}_n-\theta) \leq \rho\}$$ contiene al $\theta_0$ con probabilidad aproximada de 95%.
+Para comenzar, recordemos el TLC multivariado clásico para promedios.\
+Si $X_1,\dots,X_n\in\mathbb{R}^d$ son i.i.d. con $\mathbb{E}(X_i)=\mu$ y $\mathrm{Cov}(X_i)=C$ (simétrica definida positiva), entonces $$
+\sqrt{n}\,(\bar X-\mu)\ \xrightarrow{d}\ \mathcal{N}_d(0,\,C).
+$$ Equivalentemente, $$
+\sqrt{n}\,C^{-1/2}(\bar X-\mu)\ \xrightarrow{d}\ \mathcal{N}_d(0,\,I_d),
+$$ y el cuadrático $$
+n\,(\bar X-\mu)^\top C^{-1}(\bar X-\mu)\ \xrightarrow{d}\ \chi^2_d.
+$$ Lo anterior se justifica porque, al ser $C$ simétrica definida positiva, existe una matriz ortogonal $U$ tal que $U^\top C\,U = D$, con $D=\mathrm{diag}(\lambda_1,\dots,\lambda_d)$ y $\lambda_i>0$ (autovalores de $C$). En particular, $$
+C^{\pm1/2}=U\,D^{\pm1/2}U^\top,\qquad
+C^{-1/2} C\, C^{-1/2}=I_d,\qquad
+C^{-1/2}C^{-1/2}=C^{-1}.
+$$
 
-A continuación, basado en los datos calculados podemos encontrar la proporción de datos que cumplen la condición anterior. Para eso considere el siguiente código:
+##### TLC del EMV
 
-```{r, fig.show='hold', fig.ncol=2, out.width='49%', fig.align='center'}
-nivel <- 0.95
-rho <- qchisq(nivel, 2)
+Bajo condiciones estándar de regularidad, el estimador de máxima verosimilitud (EMV) $\hat\theta_n=(\hat\alpha_n,\hat\beta_n)$ para el modelo $\mathrm{Gamma}(\alpha,\beta)$ es consistente y asintóticamente normal: $$
+\sqrt{n}\,(\hat\theta_n-\theta_0)\ \xrightarrow{d}\ \mathcal{N}_2\!\big(0,\,\mathcal{I}_F(\theta_0)^{-1}\big),
+\qquad
+\hat\theta_n \xrightarrow{p} \theta_0,
+$$ donde $\mathcal{I}_F(\theta)$ es la **información de Fisher por observación** en $\theta$. En esta formulación, $$
+C=\mathcal{I}_F(\theta_0)^{-1}
+$$ es la matriz de covarianzas asintótica por observación del EMV; por tanto, $$
+\sqrt{n}\,\mathcal{I}_F(\theta_0)^{1/2}(\hat\theta_n-\theta_0)\ \xrightarrow{d}\ \mathcal{N}_2(0,\,I_2),\qquad
+n\,(\hat\theta_n-\theta_0)^\top \mathcal{I}_F(\theta_0)(\hat\theta_n-\theta_0)\ \xrightarrow{d}\ \chi^2_2.
+$$
 
+En la práctica $\theta_0$ es desconocido. Por continuidad de $\mathcal{I}_F$ y consistencia de $\hat\theta_n$ (teorema del mapeo continuo), $$
+\mathcal{I}_F(\hat\theta_n)\ \xrightarrow{p}\ \mathcal{I}_F(\theta_0),
+$$ y, por Slutsky, $$
+\sqrt{n}\,\mathcal{I}_F(\hat\theta_n)^{1/2}(\hat\theta_n-\theta_0)\ \xrightarrow{d}\ \mathcal{N}_2(0,\,I_2).
+$$ Esto conduce al estadístico $$
+Q_n(\theta_0):=n\,(\hat\theta_n-\theta_0)^\top \mathcal{I}_F(\hat\theta_n)(\hat\theta_n-\theta_0)\ \xrightarrow{d}\ \chi^2_2.
+$$ Obsérvese que $\mathcal{I}_F(\hat\theta_n)$ actúa como **matriz de precisión** (inversa de la covarianza asintótica). En consecuencia, una estimación de la covarianza asintótica del EMV es $$
+\widehat{\mathrm{Cov}}(\hat\theta_n)\ \approx\ \frac{1}{n}\,\mathcal{I}_F(\hat\theta_n)^{-1}.
+$$
+
+Además, para cualquier $C$ simétrica definida positiva (por ejemplo $C=\mathcal{I}_F(\theta_0)^{-1}$) existe la **raíz cuadrada principal** $C^{1/2}$, dada por la descomposición espectral $C=U D U^\top$ con $U$ ortogonal y $D$ diagonal con autovalores positivos. Esto explica la aparición de elipses al construir regiones de confianza: si definimos $$
+C(\hat\theta):=\frac{1}{n}\,\mathcal{I}_F(\hat\theta)^{-1},
+$$ entonces $C(\hat\theta)^{-1/2}\sqrt{n}\,(\hat\theta-\theta)=\mathcal{I}_F(\hat\theta)^{1/2}(\hat\theta-\theta)$ hace un cambio de variables que pone las dos coordenadas del error del EMV en la misma escala y sin mezclarse entre sí; así, la región de confianza es una esfera en el espacio transformado y, al volver al espacio original, una elipse.
+
+#### Información de Fisher para $\mathrm{Gamma}(\alpha,\beta)$
+
+Sea $X\sim \mathrm{Gamma}(\alpha,\beta)$ con densidad $$
+f(x;\alpha,\beta)=\frac{x^{\alpha-1}e^{-x/\beta}}{\Gamma(\alpha)\,\beta^\alpha},\quad x>0.
+$$ La log-verosimilitud por observación es $$
+\ell(\alpha,\beta)=(\alpha-1)\ln X-\frac{X}{\beta}-\ln\Gamma(\alpha)-\alpha\ln\beta.
+$$ El score y la Hessiana (por observación) son $$
+\frac{\partial\ell}{\partial\alpha}=\ln X-\psi(\alpha)-\ln\beta,\qquad
+\frac{\partial\ell}{\partial\beta}=\frac{X}{\beta^2}-\frac{\alpha}{\beta},
+$$ donde $\psi(\alpha)=\dfrac{\mathrm{d}}{\mathrm{d}\alpha}\ln\Gamma(\alpha)$ es la **digamma**. Para las segundas derivadas: $$
+\frac{\partial^2\ell}{\partial\alpha^2}=-h(\alpha),\qquad
+\frac{\partial^2\ell}{\partial\alpha\,\partial\beta}=-\frac{1}{\beta},\qquad
+\frac{\partial^2\ell}{\partial\beta^2}=\frac{\alpha}{\beta^2}-\frac{2X}{\beta^3},
+$$ donde $h(\alpha)$ es la **trigamma**. Tomando esperanza y cambiando de signo, la información de Fisher por observación es $$
+\mathcal{I}_F(\alpha,\beta)=
+\begin{pmatrix}
+h(\alpha) & \dfrac{1}{\beta}\\[6pt]
+\dfrac{1}{\beta} & \dfrac{\alpha}{\beta^2}
+\end{pmatrix},
+$$ ya que $\mathbb{E}[X]=\alpha\beta$ implica que $$
+-\mathbb{E}\!\left[\frac{\partial^2\ell}{\partial\beta^2}\right]
+= -\left(\frac{\alpha}{\beta^2}-\frac{2\,\mathbb{E}[X]}{\beta^3}\right)
+= -\left(\frac{\alpha}{\beta^2}-\frac{2\alpha\beta}{\beta^3}\right)
+= \frac{\alpha}{\beta^2}.
+$$
+
+#### Elipse de confianza asintótica y su área
+
+Sea $\rho=q_{0.95}(\chi^2_2)$. Un conjunto de confianza elíptico (aprox. $95\%$) para $\theta_0$ es $$
+C_{0.95}=\Big\{\theta\in\mathbb{R}^2:\ n\,(\hat\theta-\theta)^\top \mathcal{I}_F(\hat\theta)\,(\hat\theta-\theta)\le \rho\Big\}.
+$$ Diagonalizando $\mathcal{I}_F(\hat\theta)=U D U^\top$ con $U$ ortogonal y $D=\mathrm{diag}(\lambda_1,\lambda_2)$, los semiejes de la elipse son $$
+a_i=\sqrt{\frac{\rho}{n\,\lambda_i}},\qquad i=1,2,
+$$ y el área resulta $$
+\mathrm{Area}(C_{0.95})=\pi a_1 a_2=\frac{\pi\,\rho}{n\,\sqrt{\det\!\big(\mathcal{I}_F(\hat\theta)\big)}}.
+$$
+
+A continuación calculamos la proporción de réplicas que cumplen la condición de contención y graficamos los EMV coloreando según satisfagan o no $n(\hat\theta-\theta_0)^\top \mathcal{I}_F(\hat\theta)(\hat\theta-\theta_0)\le \rho$. Para ello, fijamos el nivel $0.95$, obtenemos el cuantil $\rho$ de $\chi^2_2$, definimos $\mathcal{I}_F$ según lo demostrado y una función que determina si cada réplica cae en $C_{0.95}$.
+
+```{r}
+nivel <- 0.95                  # Nivel de cobertura
+rho   <- qchisq(nivel, df = 2) # Cuantil de la chi-cuadrado con 2 g.l.
+
+# Información de Fisher por observación en (alpha, beta)
 I_F <- function(theta) {
-  alpha <- theta[1]
-  beta <- theta[2]
-  
+  alpha <- theta[1]; beta <- theta[2]
   a <- trigamma(alpha)
-  b <- 1/beta
-  c <- 1/beta
-  d <- alpha/(beta^2)
-  
-  return(matrix(c(a, b, c, d), nrow=2, ncol=2, byrow=TRUE))
+  b <- 1 / beta
+  d <- alpha / (beta^2)
+  matrix(c(a, b, b, d), nrow = 2, byrow = TRUE)
 }
 
-esta_en_C <- function(theta_n, theta, n, rho) {
-  diff <- theta_n - theta
-  IF <- I_F(theta_n)
-  value <- n * t(diff) %*% IF %*% diff
-  return(value <= rho)
+# ¿La réplica cae en C_{0.95}?  (definido por la forma cuadrática <= rho)
+esta_en_C <- function(theta_hat, theta0, n, rho) {
+  diff <- theta_hat - theta0
+  IF   <- I_F(theta_hat)
+  val  <- as.numeric(n * t(diff) %*% IF %*% diff)
+  val <= rho
 }
 ```
 
-Al calcular el porcentaje de parámetros en los resultados que cumplen con la condición respecto a $\theta_0$ obtenemos:
+Ahora, calculamos la **cobertura empírica** (porcentaje de réplicas dentro de $C_{0.95}$) para cada tamaño muestral $n$. Para cada réplica $j$ definimos el indicador $I_j=\mathbf{1}\{\,n(\hat\theta^{(j)}-\theta_0)^\top \mathcal{I}_F(\hat\theta^{(j)})(\hat\theta^{(j)}-\theta_0)\le \rho\,\}$.
 
+Con $m$ réplicas independientes, $K=\sum_{j=1}^m I_j \sim \mathrm{Binomial}(m,p)$, donde $p$ es la **cobertura verdadera**, y el estimador puntual es $\hat p=K/m$.
 
-```{r, echo= FALSE, fig.show='hold', fig.ncol=2, out.width='49%', fig.align='center'}
+Además, reportamos un **IC binomial del 95%** para $p$ (Clopper–Pearson vía `binom.test`), que cuantifica la **incertidumbre Monte Carlo**: si repitiéramos el estudio muchas veces, en ≈95% de los casos el intervalo $[L,U]$ contendría a $p$.
+
+Operativamente, si $0.95\in[L,U]$ la cobertura observada es **compatible** con la nominal; si todo $[L,U]$ queda por debajo (encima) de 0.95, hay evidencia de **subcobertura** (**sobrecobertura**), respectivamente.
+
+```{r}
 calcular_probabilidades_contencion_empiricas <- function(resultados, theta_0, rho) {
-  # Validate input columns
+  # 'resultados' debe tener: n, alpha_hat, beta_hat (una fila por réplica)
   if (!all(c("n", "alpha_hat", "beta_hat") %in% names(resultados))) {
-    stop("resultados must contain columns: n, alpha_hat, beta_hat")
+    stop("resultados debe contener las columnas: n, alpha_hat, beta_hat")
   }
   contained <- with(resultados, mapply(
     function(a_hat, b_hat, n_i) {
@@ -219,46 +297,46 @@ calcular_probabilidades_contencion_empiricas <- function(resultados, theta_0, rh
     },
     alpha_hat, beta_hat, n
   ))
+  df_flag <- data.frame(n = resultados$n, dentro = contained)
 
-  out <- aggregate(
-    contained ~ n,
-    data = data.frame(n = resultados$n, contained = contained),
-    FUN = function(x) 100 * mean(x)
-  )
-  names(out) <- c("n", "porcentaje")
-  out$n <- as.integer(out$n)
-  out <- out[order(out$n), ]
-  rownames(out) <- NULL
-
-  as.data.frame(out)
+  # Resumen por n: porcentaje, conteo y IC binomial
+  sumarizado <- lapply(split(df_flag$dentro, df_flag$n), function(x) {
+    m <- length(x); k <- sum(x)
+    pct <- 100 * k / m
+    ci <- binom.test(k, m)$conf.int * 100
+    c(m = m, k = k, porcentaje = pct, ci_lo = ci[1], ci_hi = ci[2])
+  })
+  out <- do.call(rbind, sumarizado)
+  out <- data.frame(n = as.integer(rownames(out)), out, row.names = NULL)
+  out[order(out$n), ]
 }
-theta_0 <- c(alpha_0, beta_0)
-calcular_probabilidades_contencion_empiricas(resultados, theta_0 = theta_0, rho=rho)
+
+theta_0 <- c(alpha_0, beta_0)  # definidos previamente en el notebook
+calcular_probabilidades_contencion_empiricas(resultados, theta_0 = theta_0, rho = rho)
 ```
 
-Podemos graficar los  resultados así: 
+Visualizamos ahora los EMV $(\hat\alpha,\hat\beta)$ por tamaño muestral, coloreando en azul las réplicas que cumplen la condición y en rojo las que no.
 
-```{r, echo=  FALSE}
+```{r}
+# Paquete para la visualización
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  stop("Necesitas el paquete 'ggplot2'. Instálalo con install.packages('ggplot2').")
+}
+library(ggplot2)
+
 plot_estimadores_grid <- function(resultados, theta_0, rho, ncol = 3) {
   stopifnot(all(c("n", "alpha_hat", "beta_hat") %in% names(resultados)))
-  
-  # Clasificar cada estimador según la condición
+
   dentro <- with(resultados, mapply(
     function(a_hat, b_hat, n_i) {
       esta_en_C(c(a_hat, b_hat), theta_0, n = as.integer(n_i), rho = rho)
     },
-    resultados$alpha_hat, resultados$beta_hat, resultados$n
+    alpha_hat, beta_hat, n
   ))
-  
+
   df <- transform(resultados, dentro = dentro)
   df$n <- factor(df$n, levels = sort(unique(df$n)))
-  
-  # Crear una sola figura con una cuadrícula (facet_wrap)
-  if (!requireNamespace("ggplot2", quietly = TRUE)) {
-    stop("Necesitas el paquete 'ggplot2'. Instálalo con install.packages('ggplot2').")
-  }
-  library(ggplot2)
-  
+
   p <- ggplot(df, aes(x = alpha_hat, y = beta_hat, color = dentro)) +
     geom_point(size = 1.4, alpha = 0.7) +
     scale_color_manual(values = c(`TRUE` = "blue", `FALSE` = "red"),
@@ -268,13 +346,21 @@ plot_estimadores_grid <- function(resultados, theta_0, rho, ncol = 3) {
     facet_wrap(~ n, ncol = ncol, scales = "free") +
     labs(x = expression(hat(alpha)),
          y = expression(hat(beta)),
-         title = "Estimadores MLE por tamaño de muestra") +
+         title = "Estimadores EMV por tamaño muestral") +
     theme_bw() +
     theme(legend.position = "bottom")
-  
-  print(p)            # Asegura que en Rmd se imprima como una sola figura
+
+  print(p)
   invisible(p)
 }
-plot_estimadores_grid(resultados, theta_0 = theta_0, rho=rho)
+
+plot_estimadores_grid(resultados, theta_0 = theta_0, rho = rho)
 ```
 
+En línea con la teoría, la cobertura empírica tiende al $95\%$ a medida que crece $n$ y las nubes de puntos se concentran alrededor del valor verdadero $(\alpha_0,\beta_0)=(2.5,\,4.6)$. Pues, note que, en los paneles de $n$ más grandes, la proporción de puntos rojos (no contenidos) se reduce visiblemente y la dispersión alrededor de $(\alpha_0,\beta_0)$ disminuye. Más allá, la tabla obtenida muestra una clara mejora de la cobertura con el tamaño muestral:
+
+-   Para $n=100$ y $n=200$ hay **subcobertura** notable (91.5% y 92.6%); los IC binomiales **no** contienen el 95%.
+-   Desde $n=500$ en adelante, el 95% **sí queda dentro** del intervalo de confianza de la cobertura $[92.57,\,95.57]$, $[92.68,\,95.65]$, $[93.24,\,96.09]$, por lo que la cobertura es **compatible con la nominal**.
+-   En $n=1000$–$2000$ la cobertura media (94.3%–94.8%) está a \<1 punto porcentual del 95% y la diferencia es **insignificante frente al error Monte Carlo** (ancho del IC ≈ 3 p.p. con 1000 réplicas).
+
+Consecuentemente, el conjunto elíptico asintótico alcanza una calibración adecuada **a partir de** $n \approx 500$; para tamaños más pequeños presenta subcobertura de \~2–3.5 p.p., esperable por el carácter asintótico del método y el uso de $\mathcal{I}_F(\hat\theta)$ como aproximación.
