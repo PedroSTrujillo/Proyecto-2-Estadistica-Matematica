@@ -6,7 +6,7 @@ output:
   html_notebook: default
 ---
 
-### Introducción
+## Introducción
 
 La distribución Gamma con parámetros $\alpha$ y $\beta$ se usa en las ciencias para modelar tiempos de vida de organismos o artefactos. Su densidad de probabilidad está dada por $$\frac{x^{\alpha-1} e^{-x/\beta}}{\Gamma(\alpha)\beta^\alpha}$$ y está soportada para $x > 0$. Se tiene además que $$\mu=\mathbb{E}(X) = \alpha\beta, \quad \sigma^2 = \mathrm{Var}(X)=\alpha\beta^2$$.
 
@@ -14,9 +14,9 @@ El objetivo de este proyecto es calcular el Estimador de Máxima Verosimilitud d
 
 A lo largo del proyecto, supondremos que contamos con $n$ muestras iid. $\mathcal{X} =( X_1, \dots, X_n)$ con distribución $\mathrm{Gamma}(\alpha, \beta)$ para $\alpha = \alpha_0 = 2.5$ y $\beta = \beta_0 = 4.6$.
 
-### Cálculo numérico del Estimador de Máxima Verosimilitud para el parámetro $\theta$
+## Cálculo numérico del Estimador de Máxima Verosimilitud para el parámetro $\theta$
 
-#### Método de Newton-Raphson para calcular el EMV
+### Método de Newton-Raphson para calcular el EMV
 
 La verosimilitud del parámetro $\theta$ para la muestra $\mathcal{X}$ está dada por la función bivariada $$L(\theta) = \prod_{i=1}^n f(X_i;\alpha,\beta)=\prod_{i=1}^n\frac{{X_i}^{\alpha-1} e^{-{X_i}/\beta}}{\Gamma(\alpha)\beta^\alpha}$$. Así, la log-verosimilitud es: $$l(\theta) = \sum_{i=1}^n \left( (\alpha-1)\ln(X_i)-\frac{X_i}{\beta} - \ln(\Gamma(\alpha))-\alpha\ln(\beta)\right)=  - n\ln(\Gamma(\alpha))-n\alpha\ln(\beta)+\sum_{i=1}^n \left( (\alpha-1)\ln(X_i)-\frac{X_i}{\beta}\right).$$
 
@@ -61,7 +61,7 @@ Invirtiendo la matriz, obtenemos: $$
 \end{pmatrix}.
 $$ Sabemos que, para asegurarnos de que el método de Newton-Raphson converge, debemos elegir un estimador inicial apropiado. Sabemos que podemos encontrar estimadores suficientemente buenos para $\alpha$ y $\beta$ usando los momentos de la distribución. Sabemos de las ecuaciones anteriorese que $$\alpha = \frac{\mu^2}{\sigma^2}, \qquad \beta=\frac{\sigma^2}{\mu}$$ y así, podemos definir $$\tilde{\alpha}_0 = \frac{\overline{X}^2}{s^2}, \qquad \tilde{\beta}_=\frac{s^2}{\overline{X}}$$
 
-#### Calculando el EMV
+### Calculando el EMV
 
 A continuación mostramos el código R usado para calcular el estimador
 
@@ -171,11 +171,11 @@ abline(h = beta_0, col = "red", lty = 2)
 
 Podemos ver que a medida que aumenta el tamaño muestral, la varianza de los estimadores se reduce y la media tiende al parámetro real según el cual se generaron los datos.
 
-### Conjuntos de confianza
+## Conjuntos de confianza
 
-#### TLC para el EMV y estadístico $\chi^2$
+### Teorema del Límite Central (TLC) para el EMV y estadístico $\chi^2$
 
-##### TLC multivariado clásico para promedios
+#### TLC multivariado clásico para promedios
 
 Para comenzar, recordemos el TLC multivariado clásico para promedios.\
 Si $X_1,\dots,X_n\in\mathbb{R}^d$ son i.i.d. con $\mathbb{E}(X_i)=\mu$ y $\mathrm{Cov}(X_i)=C$ (simétrica definida positiva), entonces $$
@@ -190,7 +190,7 @@ C^{-1/2} C\, C^{-1/2}=I_d,\qquad
 C^{-1/2}C^{-1/2}=C^{-1}.
 $$
 
-##### TLC del EMV
+#### TLC del EMV
 
 Bajo condiciones estándar de regularidad, el estimador de máxima verosimilitud (EMV) $\hat\theta_n=(\hat\alpha_n,\hat\beta_n)$ para el modelo $\mathrm{Gamma}(\alpha,\beta)$ es consistente y asintóticamente normal: $$
 \sqrt{n}\,(\hat\theta_n-\theta_0)\ \xrightarrow{d}\ \mathcal{N}_2\!\big(0,\,\mathcal{I}_F(\theta_0)^{-1}\big),
@@ -217,7 +217,7 @@ Además, para cualquier $C$ simétrica definida positiva (por ejemplo $C=\mathca
 C(\hat\theta):=\frac{1}{n}\,\mathcal{I}_F(\hat\theta)^{-1},
 $$ entonces $C(\hat\theta)^{-1/2}\sqrt{n}\,(\hat\theta-\theta)=\mathcal{I}_F(\hat\theta)^{1/2}(\hat\theta-\theta)$ hace un cambio de variables que pone las dos coordenadas del error del EMV en la misma escala y sin mezclarse entre sí; así, la región de confianza es una esfera en el espacio transformado y, al volver al espacio original, una elipse.
 
-#### Información de Fisher para $\mathrm{Gamma}(\alpha,\beta)$
+### Información de Fisher para $\mathrm{Gamma}(\alpha,\beta)$
 
 Sea $X\sim \mathrm{Gamma}(\alpha,\beta)$ con densidad $$
 f(x;\alpha,\beta)=\frac{x^{\alpha-1}e^{-x/\beta}}{\Gamma(\alpha)\,\beta^\alpha},\quad x>0.
@@ -243,7 +243,7 @@ $$ ya que $\mathbb{E}[X]=\alpha\beta$ implica que $$
 = \frac{\alpha}{\beta^2}.
 $$
 
-#### Elipse de confianza asintótica y su área
+### Elipse de confianza asintótica y su área
 
 Sea $\rho=q_{0.95}(\chi^2_2)$. Un conjunto de confianza elíptico (aprox. $95\%$) para $\theta_0$ es $$
 C_{0.95}=\Big\{\theta\in\mathbb{R}^2:\ n\,(\hat\theta-\theta)^\top \mathcal{I}_F(\hat\theta)\,(\hat\theta-\theta)\le \rho\Big\}.
@@ -364,3 +364,85 @@ En línea con la teoría, la cobertura empírica tiende al $95\%$ a medida que c
 -   En $n=1000$–$2000$ la cobertura media (94.3%–94.8%) está a \<1 punto porcentual del 95% y la diferencia es **insignificante frente al error Monte Carlo** (ancho del IC ≈ 3 p.p. con 1000 réplicas).
 
 Consecuentemente, el conjunto elíptico asintótico alcanza una calibración adecuada **a partir de** $n \approx 500$; para tamaños más pequeños presenta subcobertura de \~2–3.5 p.p., esperable por el carácter asintótico del método y el uso de $\mathcal{I}_F(\hat\theta)$ como aproximación.
+
+## Convergencia de la covarianza
+
+Por lo visto anteriormente, para un tamaño muestral fijo $n$ y $m=1000$ réplicas, el TLC para $\hat\theta$ implica que $\mathrm{Cov}(\hat\theta)\approx \mathcal{I}_F(\theta_0)^{-1}/n$. De ahí que, si calculamos la covarianza muestral entre $(\hat\alpha,\hat\beta)$ a partir de las $m$ réplicas y la multiplicamos por $n$, deberíamos obtener algo cercano a $\mathcal{I}_F(\theta_0)^{-1}$.
+
+Para verificar lo anterior,se computa, para cada $n$: (1) $n\,\widehat{\mathrm{Cov}}(\hat\theta)$; (2) la diferencia con $\mathcal{I}_F(\theta_0)^{-1}$; y (3) medidas de error relativas para comentar la convergencia. Esto se puede ver en el siguiente código:
+
+```{r}
+# --- Librerías ---
+library(dplyr)
+library(kableExtra)
+
+# --- Supuestos previos del notebook ---
+stopifnot(exists("I_F"), exists("resultados"), exists("alpha_0"), exists("beta_0"))
+theta0     <- c(alpha_0, beta_0)
+IF0        <- I_F(theta0)
+Sigma_theo <- solve(IF0)                 # I_F^{-1}(theta0)
+Cor_theo   <- cov2cor(Sigma_theo)
+
+# --- Cálculo por tamaño muestral ---
+res_cov_tbl2 <- split(resultados, resultados$n) |>
+  lapply(function(df) {
+    n_i    <- df$n[1]
+    S_hat  <- stats::cov(cbind(df$alpha_hat, df$beta_hat))      # Cov muestral entre réplicas
+    nS_hat <- n_i * S_hat                                       # n * Cov_muestral
+    Diff   <- nS_hat - Sigma_theo
+
+    # Evitar divisiones por cero si alguna entrada teórica fuese 0 (no ocurre aquí, pero es robusto)
+    denom <- pmax(abs(Sigma_theo), .Machine$double.eps)
+
+    data.frame(
+      n = n_i,
+      rel_frob      = norm(Diff, type = "F") / norm(Sigma_theo, type = "F"),
+      rel_max       = max(abs(Diff) / denom),
+      cor_max_diff  = max(abs(cov2cor(nS_hat) - Cor_theo)),
+      err11         = (nS_hat[1,1] / Sigma_theo[1,1]) - 1,
+      err12         = (nS_hat[1,2] / Sigma_theo[1,2]) - 1,
+      err22         = (nS_hat[2,2] / Sigma_theo[2,2]) - 1
+    )
+  }) |>
+  bind_rows() |>
+  arrange(n)
+
+# --- Tabla 1: resumen de discrepancias globales ---
+tabla_resumen <- res_cov_tbl2 |>
+  transmute(
+    n,
+    `Frobenius (%)` = 100 * rel_frob,
+    `Máx. (%)`      = 100 * rel_max,
+    `|Δ correl| máx.`  = cor_max_diff
+  )
+
+tabla_resumen |>
+  kbl(booktabs = TRUE, digits = c(0, 2, 2, 4),
+      col.names = c("n","Frobenius (%)","Máx. (%)","|Δ correl| máx."),
+      caption   = "Resumen de discrepancias") |>
+  kable_paper("hover", full_width = FALSE) |>
+  column_spec(1, bold = TRUE, width = "4em") |>
+  row_spec(0, background = "#0f172a", color = "white")
+
+# --- Tabla 2: errores relativos por entrada (en %) ---
+tabla_entradas <- res_cov_tbl2 |>
+  transmute(
+    n,
+    `E11 (%)` = 100 * err11,
+    `E12 (%)` = 100 * err12,
+    `E22 (%)` = 100 * err22
+  )
+
+tabla_entradas |>
+  kbl(booktabs = TRUE, digits = c(0, 1, 1, 1),
+      caption = "Errores relativos por entrada: (n·Cov_emp − $I_F^{-1}$) / $I_F^{-1}$ × 100%.") |>
+  kable_paper("hover", full_width = FALSE) |>
+  add_header_above(c(" " = 1, "Errores (%)" = 3)) |>
+  row_spec(0, background = "#0f172a", color = "white")
+```
+
+A partir de estos resultados, al comparar $n\,\widehat{\mathrm{Cov}}(\hat\theta)$ con $\mathcal{I}_F(\theta_0)^{-1}$ se observa que los errores globales son pequeños y disminuyen marcadamente de $n=100$ a $n=500$: el error relativo de Frobenius pasa de **5.37%** a **2.25%**, y el máximo error por entrada de **13.54%** a **2.61%**.
+
+Más allá, entrada a entrada el mayor desajuste aparece en la varianza de $\hat\alpha$ para $n=100$ (**E11 ≈ +13.5%**), mientras que para $n\ge 500$ todas las entradas quedan dentro de **±3%**. Además, la diferencia máxima entre matrices de correlación cae de $\sim 1.1\times10^{-2}$ a $\sim 10^{-3}$, lo que indica que también converge la **orientación** de la elipse.
+
+En conjunto, esto es coherente con la convergencia $n\,\widehat{\mathrm{Cov}}(\hat\theta)\to \mathcal{I}_F(\theta_0)^{-1}$; las leves oscilaciones entre $n=500,1000,2000$ se explican por el **error Monte Carlo** con $m=1000$ réplicas. Por último, con un criterio práctico (errores $\lesssim 3\%$ y $|\Delta\mathrm{correl}|\lesssim 0.01$), la aproximación es **buena para** $n\ge 500$ y **muy buena** para $n=1000$–$2000$. No obstante, para $n=100$–$200$ persiste una sub/sobre-estimación de algunas varianzas (hasta $\sim 10$–$14\%$ en E11 a $n=100$), esperable por el carácter asintótico del resultado.
